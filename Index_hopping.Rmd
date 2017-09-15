@@ -1,0 +1,181 @@
+---
+title: "Index_hopping"
+author: "Dane Dewees"
+date: '`r date()`'
+output_format: html_document
+---
+
+```{r echo=FALSE}
+#Color Format - `r colFmt("green TEXT",'green')`
+library(knitr)
+colFmt = function(x,color){
+  outputFormat = opts_knit$get("rmarkdown.pandoc.to")
+  if(outputFormat == 'latex')
+    paste("\\textcolor{",color,"}{",x,"}",sep="")
+  else if(outputFormat == 'html')
+    paste("<font color='",color,"'>",x,"</font>",sep="")
+  else
+    x
+}
+```
+
+
+
+
+`r colFmt("**Part 1: Generate	per	base	call	distribution	of	quality	scores	for	read1,	read2,	index1,	and	index2. Next, average	the	Quality	scores	for	each	read	(for	each	of	the	four	files) and	plot frequency	of	the	Quality	Scores**.", 'green')`
+
+
+*see part 1 python scripts for both mean QS and frequency distribution on github* 
+
+```{r echo = FALSE}
+
+setwd ("/Users/Deweesd/Desktop/Q_distribution data")
+getwd
+
+
+index_read_1 <- read.table("R1.tsv", sep = "\t")
+index_read_2 <- read.table("R2.tsv", sep = "\t")
+index_read_3 <- read.table("R3.tsv", sep = "\t")
+index_read_4 <- read.table("R4.tsv", sep = "\t")
+
+
+colnames(index_read_1) <- c("gene count", "Avg QS") 
+colnames(index_read_2) <- c("gene count", "Avg QS")
+colnames(index_read_3) <- c("gene count", "Avg QS")
+colnames(index_read_4) <- c("gene count", "Avg QS")
+```
+
+
+
+
+`r colFmt("**PART 1 plots QS distribution-individual**", 'green')`
+
+```{r}
+par(mfrow=c(2,2))
+
+
+plot(index_read_1, main = "Read 1 Q Distribution", ylim = c(30,40), col = 'steel blue')
+plot(index_read_2, main = "Read 2 Q Distribution", ylim = c(30,40), col = 'green')
+plot(index_read_3, main = "Read 3 Q Distribution", ylim = c(30,40), col = 'red')
+plot(index_read_4, main = "Read 4 Q Distribution", ylim = c(30,40), col = 'black')
+```
+
+`r colFmt("**PART 1 plots (Mean quality score R1/R4 & R2/R3)**", 'green')`
+
+```{r}
+par(mfrow=c(1,2))
+
+plot(index_read_1, main = "sequence mean QS Distribution", pch = 19, type = "l", ylim = c(30,40), col = 'steel blue')
+points(index_read_4, main = "Read 4 Quality Distribution", type = "l", ylim = c(30,40), col = 'black')
+legend(57, 32, legend=c("R1", "R4"), col=c("blue", "black"), lty=1)
+
+
+plot(index_read_2, main = "index mean QS Distribution", pch = 19, type = "l", ylim = c(30,40), col = 'red')
+points(index_read_3, main = "Read 4 Quality Distribution", type = "l", ylim = c(30,40), col = 'black')
+legend(5, 32, legend=c("R2", "R3"), col=c("red", "black"), lty=1)
+```
+
+
+
+
+```{r echo = FALSE}
+R1_freq_table <- read.table("R1_P2_Plot.txt", sep = "\t", row.names = NULL)
+R2_freq_table <- read.table("R2_P2_Plot.txt", sep = "\t",  row.names = NULL)
+R3_freq_table <- read.table("R3_P2_Plot.txt", sep = "\t", row.names = NULL)
+R4_freq_table <- read.table("R4_P2_Plot.txt", sep = "\t", row.names = NULL)
+
+
+colnames(R1_freq_table) <- c("Mean_QS", "Frequency")
+colnames(R2_freq_table) <- c("Mean_QS", "Frequency")
+colnames(R3_freq_table) <- c("Mean_QS", "Frequency")
+colnames(R4_freq_table) <- c("Mean_QS", "Frequency")
+```
+
+
+`r colFmt("**Frequency per Base Pair Position plots**", 'green')`
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(R1_freq_table$Mean_QS, log2(R1_freq_table$Frequency), xlab='Average Q_Score of Read', main='Frequency of Q_Scores R1', pch=10, ylab='Frequency(log2)', col = "steel blue")
+plot(R2_freq_table$Mean_QS, log2(R2_freq_table$Frequency), xlab='Average Q_Score of Read', main='Frequency of Q_Scores R2', pch=19, ylab='Frequency(log2)', col = "green")
+plot(R3_freq_table$Mean_QS, log2(R3_freq_table$Frequency), xlab='Average Q_Score of Read', main='Frequency of Q_Scores R3', pch=19, ylab='Frequency(log2)', col = "green")
+plot(R4_freq_table$Mean_QS, log2(R4_freq_table$Frequency), xlab='Average Q_Score of Read', main='Frequency of Q_Scores R4', pch=19, ylab='Frequency(log2)', col = "steel blue")
+```
+
+
+`r colFmt("**What is a good quality score cutoff for index reads and pairs to utilize for sample identification and downstream analysis, respectively?**", 'green')`
+
+
+Roughly around 30 could be e a good quality score cut off. When viewing the output tables and plots from part 1, you can see a siginficant increase occurance of quality scores over 30. Setting a higher cutoff could potentially lead to loss data. Trimming this value however, could get rid of some bad avg reads when looking at posiitons 1-2. 
+
+
+
+`r colFmt("**How many indexes have Undetermined (N) base calls? (Utilize your command line tool knowledge. CHALLENGE: use a one line command)**", 'green')`
+
+[daned@ln1 new_index_data]$ cat 1294_S1_L008_R2_001.fastq | awk 'NR %4 == 2' | grep -c "N" 
+3976613
+
+[daned@ln1 new_index_data]$ cat 1294_S1_L008_R3_001.fastq | awk 'NR %4 == 2' | grep -c "N" 
+3328051
+
+
+
+
+`r colFmt("**What do the averaged Quality Scores across the reads tell you? Interpret your data specifically.**", 'green')`
+
+The average QS in the majority of the figures is around 39-40 for the base pair positions for reads 1&4. For reads2&3 (index files), the avg QS is between 30-40 (slightly lower) which could be caused by index hopping. This shows that the spread is quite significant for both high and low quality scores.
+
+
+
+`r colFmt("**Write a program to de-multiplex the samples and document index swapping and number of reads retained per sample.**", 'green')`
+
+*see part_2_idx_hopping script*
+
+
+`r colFmt("**How many reads are retained for each expected index pair? What is the percentage?**", 'green')`
+
+*see stats_cov30.tsv and Dual_idx_pairs_cov30.tsv files for raw data - see below for output of index pair with added percent column and total for cov_cutoff of 30*
+
+
+From the data below, you can see that roughly 62% were greater than the cutoff score of 30. Also, you can see infleunces from swapping/sequence error when looking at the total percent of those that did not align to said index pairs (see below). 
+```{r echo=FALSE}
+expected_idexes <- read.table("Dual_idx_pairs_cov30.tsv", sep = "\t", head = TRUE)
+
+expected_idexes$percent_captured <- expected_idexes$Counts/232228144*100
+expected_idexes$percent_total <- expected_idexes$Counts/363246735*100
+
+
+headersExp <- c("Exp_Index_pairs", "Counts_per_read", "Percent_captured", "Percent_total")
+colnames(expected_idexes) <- headersExp
+
+expected_idexes
+```
+
+`r colFmt("How many reads are indicative of Index Swapping?", 'green')`
+
+330975 for cov_cuttoff of 30 and 179624 for raw/cov_cutoff of 0
+
+
+
+`r colFmt("**Create a distribution of swapped idexes. What does the data tell you?**", 'green')`
+
+
+*Heatmap below is for the cov_cutoff of 30*
+
+```{r echo=FALSE}
+swapped_idx_table <- read.table("idx_hop_cov30.tsv", sep = "\t", row.names = NULL)
+colnames(swapped_idx_table) <- c("R2", "R3", "Counts")
+
+
+library(ggplot2)
+library(reshape2)
+
+swapped_idx_table.m <- melt(swapped_idx_table)
+
+ggplot(swapped_idx_table.m, aes(x=R2, y=R3, fill=log10(value))) + geom_tile() + coord_equal() + scale_fill_distiller(palette = "YlOrRd") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+The heatmat shows a wide spread of possible swapped idx combos among the data set of a coverage cutoff of 30 (given out output data). The color indicators from yellow to red shows that brighter yellow --> white is indicative of a 'perfect' match to the counts. Dark red to bright yellow is the spectrum of counts given each index pair. As you can see, there was a significant amount index swapping (this could be through poor preporation of said sample-especially when looking that the indexes TACCGGAT~TACCGGAT). You can also see a consistent trend with the indexes CTTCGAC_TCTTCGAC as far as higher log value. You can reference the table above to see that those two index pairs had a significantly higher percent retained value of sampled reads. 21% for TACCGGAT~TACCGGAT and roughly 13% for TCTTCGAC_TCTTCGAC. This can show the issues with index swapping. Due to the variety in concentration each student had during the preporation of libraries, it could have had already bad coverage to begin with when Maggie began to pool the samples together. 
+
